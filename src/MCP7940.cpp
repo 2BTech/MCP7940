@@ -1,11 +1,9 @@
 /*! @file MCP7940.cpp
  @section MCP7940cpp_intro_section Description
-
 Arduino Library for the MCP7940M and MCP7940N Real-Time Clock devices\n\n
 See main library header file for details
 */
 #include "MCP7940.h"
-
 /*! Define the number of days in each month */
 const uint8_t   daysInMonth[] PROGMEM = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 static uint16_t date2days(uint16_t y, uint8_t m, uint8_t d) {
@@ -16,7 +14,9 @@ static uint16_t date2days(uint16_t y, uint8_t m, uint8_t d) {
    * @param[in] d Day
    * @return    number of days from a given Y M D value
    */
-  if (y >= 2000) { y -= 2000; }  // of if-then year is greater than 2000
+  if (y >= 2000) {
+    y -= 2000;
+  }  // of if-then year is greater than 2000
   uint16_t days = d;
   for (uint8_t i = 1; i < m; ++i)  // Add number of days for each month
   {
@@ -50,7 +50,9 @@ static uint8_t conv2d(const char* p) {
    * @return    decimal value
    */
   uint8_t v = 0;
-  if ('0' <= *p && *p <= '9') { v = *p - '0'; }  // of if-then character in range
+  if ('0' <= *p && *p <= '9') {
+    v = *p - '0';
+  }  // of if-then character in range
   return 10 * v + *++p - '0';
 }  // of method conv2d
 DateTime::DateTime(uint32_t t) {
@@ -60,11 +62,7 @@ DateTime::DateTime(uint32_t t) {
    constructor so there are multiple definitions. This implementation ignores time zones and DST
    changes. It also ignores leap seconds, see http://en.wikipedia.org/wiki/Leap_second
    @param[in] t seconds since the year 1970 (UNIX timet) */
-  if (t < SECS_1970_TO_2000) {
-    t = 0;  // set to lowest possible date 2000-01-01
-  } else {
-    t -= SECS_1970_TO_2000;  // bring to 2000 timestamp from 1970
-  }
+  t -= SECS_1970_TO_2000;  // bring to 2000 timestamp from 1970
   ss = t % 60;
   t /= 60;
   mm = t % 60;
@@ -98,7 +96,9 @@ DateTime::DateTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint
    @param[in] hour Hour
    @param[in] min Minute
    @param[in] sec Second */
-  if (year >= 2000) { year -= 2000; }  // of if-then year is greater than 2000 for offset
+  if (year >= 2000) {
+    year -= 2000;
+  }  // of if-then year is greater than 2000 for offset
   yOff = year;
   m    = month;
   d    = day;
@@ -125,14 +125,30 @@ DateTime::DateTime(const char* date, const char* time) {
   @param[in] time Pointer to time string */
   yOff = conv2d(date + 9);
   switch (date[0]) {
-    case 'J': m = (date[1] == 'a') ? 1 : ((date[2] == 'n') ? 6 : 7); break;  // Jan June July
-    case 'F': m = 2; break;                                                  // February
-    case 'A': m = date[2] == 'r' ? 4 : 8; break;                             // April August
-    case 'M': m = date[2] == 'r' ? 3 : 5; break;                             // March May
-    case 'S': m = 9; break;                                                  // September
-    case 'O': m = 10; break;                                                 // October
-    case 'N': m = 11; break;                                                 // November
-    case 'D': m = 12; break;                                                 // December
+    case 'J':
+      m = (date[1] == 'a') ? 1 : ((date[2] == 'n') ? 6 : 7);
+      break;  // Jan June July
+    case 'F':
+      m = 2;
+      break;  // February
+    case 'A':
+      m = date[2] == 'r' ? 4 : 8;
+      break;  // April August
+    case 'M':
+      m = date[2] == 'r' ? 3 : 5;
+      break;  // March May
+    case 'S':
+      m = 9;
+      break;  // September
+    case 'O':
+      m = 10;
+      break;  // October
+    case 'N':
+      m = 11;
+      break;  // November
+    case 'D':
+      m = 12;
+      break;              // December
   }                       // of switch for the month
   d  = conv2d(date + 4);  // Compute the day
   hh = conv2d(time);
@@ -174,7 +190,7 @@ uint32_t DateTime::unixtime(void) const {
   */
   uint16_t days = date2days(yOff, m, d);        // Compute days
   uint32_t t    = time2long(days, hh, mm, ss);  // Compute seconds
-  t += SECS_1970_TO_2000;                       // Add time from 1970 to 2000
+  t += SECS_1970_TO_2000;                       // Add time form 1970 to 2000
   return t;
 }  // of method unixtime()
 long DateTime::secondstime(void) const {
@@ -186,14 +202,6 @@ long DateTime::secondstime(void) const {
   long     t    = time2long(days, hh, mm, ss);
   return t;
 }  // of method secondstime()
-bool DateTime::equals(const DateTime* other) {
-  /*!
-  @brief     added equals method for class DateTime
-  @return    true if date and time are equal else return false
-  */
-  return (this->yOff == other->yOff && this->m == other->m && this->d == other->d &&
-          this->hh == other->hh && this->mm == other->mm && this->ss == other->ss);
-}
 DateTime DateTime::operator+(const TimeSpan& span) {
   /*!
   @brief     overloaded "+" operator for class DateTime
@@ -235,26 +243,8 @@ bool MCP7940_Class::begin(const uint32_t i2cSpeed) const {
       @param[in] i2cSpeed defaults to I2C_STANDARD_MODE, otherwise use speed in Herz
       @return    true if successfully started communication, otherwise false
   */
-  return begin(SDA, SCL, i2cSpeed);
-}  // of method begin()
-bool MCP7940_Class::begin(const uint8_t sda, const uint8_t scl, const uint32_t i2cSpeed) const {
-  /*!
-      @brief     Start I2C device communications
-      @details   Starts I2C comms with the device, using default SDA and SCL ports as well as speed
-                 if they are not specified
-      @param[in] sda defaults to PIN_WIRE_SDA, otherwise use pin (ignored if not ESP8266)
-      @param[in] scl defaults to PIN_WIRE_SCL, otherwise use pin (ignored if not ESP8266)
-      @param[in] i2cSpeed defaults to I2C_STANDARD_MODE, otherwise use speed in Herz
-      @return    true if successfully started communication, otherwise false
-  */
-#if defined(ESP8266)
-  Wire.begin(sda, scl);  // Start I2C as master device using the specified SDA and SCL
-#elif defined(ESP8266)
-  Wire.begin();  // Start I2C as master device
-#endif
-  (void)sda;                // force compiler to ignore this potentially unused parameter
-  (void)scl;                // force compiler to ignore this potentially unused parameter
-  Wire.setClock(i2cSpeed);  // Set the I2C bus speed
+  Wire.begin();                             // Start I2C as master device
+  Wire.setClock(i2cSpeed);                  // Set the I2C bus speed
   Wire.beginTransmission(MCP7940_ADDRESS);  // Address the MCP7940
   if (Wire.endTransmission() == 0)          // If there a device present
   {
@@ -265,7 +255,6 @@ bool MCP7940_Class::begin(const uint8_t sda, const uint8_t scl, const uint32_t i
     return false;  // return error if no device found
   }                // of if-then-else device detected
 }  // of method begin()
-
 uint8_t MCP7940_Class::readByte(const uint8_t addr) const {
   /*!
       @brief     Read a single byte from the device address
@@ -492,6 +481,13 @@ int8_t MCP7940_Class::calibrate(const int8_t newTrim) {
   }                                                    // of if-then value of trim is less than 0
   clearRegisterBit(MCP7940_CONTROL, MCP7940_CRSTRIM);  // fine trim mode on, to be safe    //
   I2C_write(MCP7940_OSCTRIM, trim);                    // Write value to the trim register //
+  // clearRegisterBit(MCP7940_CONTROL, MCP7940_CRSTRIM);  // Sets the trim to do 127 times the number
+  // I2C_write(MCP7940_OSCTRIM, 0x7F); // This is 00000010. The first zero to the left says our clock is fast, the last seven bits say to shift by 4 clock cycles a second
+  // Serial.printf("Control Register: %02X\n\r", readRegisterBit(MCP7940_CONTROL, MCP7940_CRSTRIM));
+  // for (int i = 7; i > -1; i--)
+  // {
+  //   Serial.printf("OSCTRIM Register %d: %02X\n\r", i, readRegisterBit(MCP7940_OSCTRIM, i));
+  // }
   _SetUnixTime = now().unixtime();                     // Store time of last change        //
   return newTrim;
 }  // of method calibrate()
@@ -516,15 +512,17 @@ int8_t MCP7940_Class::calibrate(const DateTime& dt) {
   adjust(dt);  // set the new Date-Time value
   ppm          = constrain(ppm, -130, 130);
   int16_t trim = readByte(MCP7940_OSCTRIM);  // Read current trim register value
+  Serial.println("Old trim value inside of date time calibrate: "+String(trim));
   if (trim >> 7)                             // use negative value if necessary
   {
     trim = (~0x80 & trim) * -1;
   }                                    // of if-then trim is set
   trim += ppm * 32768 * 60 / 2000000;  // compute the new trim value
   trim = constrain(trim, -127, 127);   // Clamp to value range
+  Serial.println("New trim value inside of date time calibrate: "+String((const int8_t)trim));
   return calibrate((const int8_t)trim);
 }  // of method calibrate()
-int8_t MCP7940_Class::calibrate(const float fMeas) const {
+int8_t MCP7940_Class::calibrate(const float fMeas) {
   /*!
       @brief   Calibrate the MCP7940 (overloaded)
       @details When called with one floating point value then that is used as the measured frequency
@@ -535,10 +533,18 @@ int8_t MCP7940_Class::calibrate(const float fMeas) const {
   uint32_t fIdeal = getSQWSpeed();         // read the current SQW Speed code
   switch (fIdeal)                          // set variable to real SQW speed
   {
-    case 0: fIdeal = 1; break;
-    case 1: fIdeal = 4096; break;
-    case 2: fIdeal = 8192; break;
-    case 4: fIdeal = 64; break;
+    case 0:
+      fIdeal = 1;
+      break;
+    case 1:
+      fIdeal = 4096;
+      break;
+    case 2:
+      fIdeal = 8192;
+      break;
+    case 4:
+      fIdeal = 64;
+      break;
     case 3:
       fIdeal = 32768;
       trim   = 0;  // Trim is ignored on 32KHz signal
@@ -744,7 +750,9 @@ bool MCP7940_Class::clearAlarm(const uint8_t alarmNumber) const {
       @param[in] alarmNumber Alarm number 0 or 1
       @return False if the alarmNumber is out of range, otherwise true
   */
-  if (alarmNumber > 1) { return false; }  // of if-then a bad alarm number
+  if (alarmNumber > 1) {
+    return false;
+  }  // of if-then a bad alarm number
   clearRegisterBit(alarmNumber ? MCP7940_ALM1WKDAY : MCP7940_ALM0WKDAY,
                    MCP7940_ALM0IF);  // reset register bit
   return true;
@@ -756,7 +764,9 @@ bool MCP7940_Class::setAlarmState(const uint8_t alarmNumber, const bool state) c
       @param[in] state State to the set the alarm to
       @return False if the alarmNumber is out of range, otherwise true
   */
-  if (alarmNumber > 1) { return false; }  // of if-then a bad alarm number
+  if (alarmNumber > 1) {
+    return false;
+  }  // of if-then a bad alarm number
   writeRegisterBit(MCP7940_CONTROL, alarmNumber ? MCP7940_ALM1EN : MCP7940_ALM0EN,
                    state);  // Overwrite register bit
   return true;
@@ -767,7 +777,9 @@ bool MCP7940_Class::getAlarmState(const uint8_t alarmNumber) const {
       @param[in] alarmNumber Alarm number 0 or 1
       @return False if the alarmNumber is out of range or off, otherwise true
   */
-  if (alarmNumber > 1) { return false; }  // of if-then a bad alarm number
+  if (alarmNumber > 1) {
+    return false;
+  }  // of if-then a bad alarm number
   return readRegisterBit(MCP7940_CONTROL,
                          alarmNumber ? MCP7940_ALM1EN : MCP7940_ALM0EN);  // Get state of alarm
 }  // of getAlarmState()
@@ -777,7 +789,9 @@ bool MCP7940_Class::isAlarm(const uint8_t alarmNumber) const {
       @param[in] alarmNumber Alarm number 0 or 1
       @return False if the alarmNumber is out of range or off, otherwise true
   */
-  if (alarmNumber > 1) { return false; }  // of if-then a bad alarm number
+  if (alarmNumber > 1) {
+    return false;
+  }  // of if-then a bad alarm number
   return readRegisterBit(alarmNumber ? MCP7940_ALM1WKDAY : MCP7940_ALM0WKDAY,
                          MCP7940_ALM0IF);  // Get alarm state
 }  // of method isAlarm()
